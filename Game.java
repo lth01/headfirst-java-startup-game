@@ -20,14 +20,17 @@ public class Game {
 		game.helper = new GameHelper();
 		game.arrStartUp = new ArrayList<StartUpCompany>();
 
-		game.comSize = 3;
-		game.mapSize = 7;
+		game.setupGameParam();
 
 		game.gameMap = game.helper.createRandomGrid(game.mapSize);
 		game.createStartUp();
 
 		game.gameStart();
+	}
 
+	public void setupGameParam() {
+		this.comSize = 3;
+		this.mapSize = 7;
 	}
 
 	public void createStartUp() {
@@ -45,10 +48,8 @@ public class Game {
 
 			// 회사 좌표 설정
 			com.setPosCells(helper.getPlaceStartup(gameMap, mapSize, comSize), mapSize);
-			com.getPosCells();
 
 			arrStartUp.add(com);
-
 		}
 	}
 
@@ -59,38 +60,47 @@ public class Game {
 
 		while (tbContinue) {
 			String guessPlace = helper.getGuessPlace();
-			boolean allMiss = true;
+			getGuessResult(guessPlace);
+
 			score++;
 
-			// 추축 결과 확인
-			for (StartUpCompany com : arrStartUp) {
-
-				String guessResult = com.guess(guessPlace);
-
-				if (guessResult.equals("miss")) {
-					continue;
-				}
-
-				if (guessResult.equals("kill")) {
-					arrStartUp.remove(com);
-				}
-
-				allMiss = false;
-				System.out.println(guessResult);
-				break;
-			}
-
-			if (allMiss) {
-				System.out.println("miss");
-			}
-
-			if (arrStartUp.size() == 0) {
+			if (judgeGameOver()) {
 				// game end
 				System.out.println("All Startups are dead!! your stock is now worthless");
 				System.out.format("Took you long enough. %s guesses.", score);
 				return;
 			}
 		}
+	}
+
+	public void getGuessResult(String guessPlace) {
+		boolean allMiss = true;
+
+		// 추축 결과 확인
+		for (StartUpCompany com : arrStartUp) {
+
+			String guessResult = com.guess(guessPlace);
+
+			if (guessResult.equals("miss")) {
+				continue;
+			}
+
+			if (guessResult.equals("kill")) {
+				arrStartUp.remove(com);
+			}
+
+			allMiss = false;
+			System.out.println(guessResult);
+			break;
+		}
+
+		if (allMiss) {
+			System.out.println("miss");
+		}
+	}
+
+	public boolean judgeGameOver() {
+		return arrStartUp.isEmpty();
 	}
 }
 
@@ -130,20 +140,13 @@ class StartUpCompany {
 			this.posCells.remove(guessPos);
 		}
 
-		if (guessResult && this.numOfHits == 3) {
+		if (guessResult && this.posCells.isEmpty()) {
 			System.out.println("Ouch! you sunk " + this.comName);
-			this.alive = false;
 			return "kill";
 		} else if (guessResult) {
 			return "hit";
 		} else {
 			return "miss";
-		}
-	}
-
-	public void getPosCells() {
-		for (String pos : posCells) {
-			System.out.println(pos);
 		}
 	}
 }
